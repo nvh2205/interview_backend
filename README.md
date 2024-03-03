@@ -6,6 +6,9 @@ Api docs: http://localhost:4000/docs
 Use docker to run the application
 
 ```bash
+# Copy env file
+
+#run docker
 docker-compose up
 ```
 
