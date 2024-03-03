@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+    postgres:
+        image: postgres:14.4
+        env_file:
+          - ./.env
+        environment: 
+          - POSTGRES_USER=${DATABASE_USER}
+          - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+          - POSTGRES_DB=${DATABASE_NAME}
+        container_name: interview-db-${NODE_ENV}
+        volumes:
+          - ./pgdata:/var/lib/postgresql/data
+        ports:
+          - '${DATABASE_HOST_PORT}:5432'
+        networks:
+          - interview_net
+    be:
+        build: 
+          context: .
+          dockerfile: ./Dockerfile
+        env_file:
+            - ./.env
+        ports: 
+            - "${PORT}:4000" # expose-to-the-world : only-in-the-docker
+        container_name: be-${NODE_ENV}
+        depends_on: 
+            - postgres
+        volumes: 
+            - .:/app
+            - /app/node_modules
+        command:
+              - /bin/sh
+              - -c
+              - |
+                  npm i
+                  npx typeorm -d dist/db/data-source.js migration:run
+                  npm run start:dev
+        networks:
+          - interview_net
+networks:
+    interview_net:
+        driver: bridge
